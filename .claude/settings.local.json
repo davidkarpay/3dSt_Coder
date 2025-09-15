@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(python -m pytest llm_server/tests/ -v)",
+      "Bash(python3 -m pytest llm_server/tests/ -v)",
+      "Bash(where python)",
+      "Bash(poetry --version)",
+      "Bash(pip install:*)",
+      "Bash(powershell:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

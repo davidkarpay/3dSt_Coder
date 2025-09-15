@@ -1,0 +1,1 @@
+UI placeholder. The real UI will be a Tauri app in `ui/src` and `ui/src-tauri`.

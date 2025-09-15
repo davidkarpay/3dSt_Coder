@@ -1,0 +1,2 @@
+localLLM scaffold created per First.txt
+Includes: llm_server, agent, api, ui, CI workflow, Dockerfile
