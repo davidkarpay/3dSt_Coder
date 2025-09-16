@@ -26,10 +26,10 @@ async def run_basic_tests():
         from agent import CodingAgent, ConversationMemory
         from agent.tools import get_available_tools
         from api.router import router
-        print("   ✅ All modules import successfully")
+        print("   [PASS] All modules import successfully")
         tests_passed += 1
     except ImportError as e:
-        print(f"   ❌ Import failed: {e}")
+        print(f"   [FAIL] Import failed: {e}")
         tests_failed += 1
 
     # Test 2: LLM Configuration
@@ -39,10 +39,10 @@ async def run_basic_tests():
         assert hasattr(config, 'model_path')
         assert hasattr(config, 'max_tokens')
         assert hasattr(config, 'temperature')
-        print("   ✅ LLM configuration working")
+        print("   [PASS] LLM configuration working")
         tests_passed += 1
     except Exception as e:
-        print(f"   ❌ LLM configuration failed: {e}")
+        print(f"   [FAIL] LLM configuration failed: {e}")
         tests_failed += 1
 
     # Test 3: Tool discovery
@@ -57,10 +57,10 @@ async def run_basic_tests():
             assert hasattr(tool, 'name')
             assert hasattr(tool, 'description')
 
-        print(f"   ✅ Found {len(tools)} tools: {list(tools.keys())}")
+        print(f"   [PASS] Found {len(tools)} tools: {list(tools.keys())}")
         tests_passed += 1
     except Exception as e:
-        print(f"   ❌ Tool discovery failed: {e}")
+        print(f"   [FAIL] Tool discovery failed: {e}")
         tests_failed += 1
 
     # Test 4: Memory initialization
@@ -74,10 +74,10 @@ async def run_basic_tests():
         messages = memory.get_context()
         assert len(messages) > 0
         assert messages[0]['content'] == "Test message"
-        print("   ✅ Memory system working")
+        print("   [PASS] Memory system working")
         tests_passed += 1
     except Exception as e:
-        print(f"   ❌ Memory test failed: {e}")
+        print(f"   [FAIL] Memory test failed: {e}")
         traceback.print_exc()
         tests_failed += 1
 
@@ -93,10 +93,10 @@ async def run_basic_tests():
         assert agent.llm is not None
         assert agent.tools is not None
         assert agent.memory is not None
-        print("   ✅ Agent initialization working")
+        print("   [PASS] Agent initialization working")
         tests_passed += 1
     except Exception as e:
-        print(f"   ❌ Agent initialization failed: {e}")
+        print(f"   [FAIL] Agent initialization failed: {e}")
         tests_failed += 1
 
     # Test 6: API router setup
@@ -107,13 +107,13 @@ async def run_basic_tests():
 
         # This will fail if dependencies aren't initialized, but we test the structure
         assert hasattr(app, 'routes')
-        print("   ✅ API router structure valid")
+        print("   [PASS] API router structure valid")
         tests_passed += 1
     except ImportError:
         print("   ⚠️  FastAPI TestClient not available, skipping API test")
         tests_passed += 1
     except Exception as e:
-        print(f"   ❌ API router test failed: {e}")
+        print(f"   [FAIL] API router test failed: {e}")
         tests_failed += 1
 
     # Test 7: Tool pattern recognition
@@ -126,25 +126,25 @@ async def run_basic_tests():
         assert match is not None
         assert match.group(1) == "file_read"
         assert match.group(2) == "path=test.py"
-        print("   ✅ Tool pattern recognition working")
+        print("   [PASS] Tool pattern recognition working")
         tests_passed += 1
     except Exception as e:
-        print(f"   ❌ Tool pattern test failed: {e}")
+        print(f"   [FAIL] Tool pattern test failed: {e}")
         tests_failed += 1
 
     # Summary
     print(f"\n" + "=" * 60)
     print(f"TEST SUMMARY")
     print(f"=" * 60)
-    print(f"✅ Passed: {tests_passed}")
-    print(f"❌ Failed: {tests_failed}")
+    print(f"[PASS] Passed: {tests_passed}")
+    print(f"[FAIL] Failed: {tests_failed}")
     print(f"Total: {tests_passed + tests_failed}")
 
     if tests_failed == 0:
-        print("\n🎉 All tests passed! LocalLLM implementation is working correctly.")
+        print("\n[SUCCESS] All tests passed! LocalLLM implementation is working correctly.")
         return True
     else:
-        print(f"\n⚠️  {tests_failed} test(s) failed. Review the implementation.")
+        print(f"\n[WARNING] {tests_failed} test(s) failed. Review the implementation.")
         return False
 
 if __name__ == "__main__":

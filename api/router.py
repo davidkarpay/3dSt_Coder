@@ -23,22 +23,22 @@ from llm_server.config import LLMConfig
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1", tags=["coding-agent"])
+router = APIRouter(prefix="/api/v1", tags=["3dst-coder"])
 
 # Global instances (will be initialized in main.py)
-_agent_instance: CodingAgent = None
-_llm_engine: VLLMEngine = None
+_agent_instance = None
+_llm_engine = None
 _memory_store: Dict[str, ConversationMemory] = {}
 
 
-def get_agent() -> CodingAgent:
+def get_agent():
     """Dependency to get the global agent instance."""
     if _agent_instance is None:
         raise HTTPException(status_code=503, detail="Agent not initialized")
     return _agent_instance
 
 
-def get_llm_engine() -> VLLMEngine:
+def get_llm_engine():
     """Dependency to get the global LLM engine."""
     if _llm_engine is None:
         raise HTTPException(status_code=503, detail="LLM engine not initialized")
@@ -62,7 +62,7 @@ async def get_memory(project_id: str) -> ConversationMemory:
 @router.post("/chat", response_model=ChatStreamResponse)
 async def chat_stream(
     request: ChatRequest,
-    agent: CodingAgent = Depends(get_agent),
+    agent = Depends(get_agent),
 ) -> EventSourceResponse:
     """Stream a chat response from the coding agent.
 
@@ -136,7 +136,7 @@ async def chat_stream(
 @router.post("/chat/complete", response_model=ChatResponse)
 async def chat_complete(
     request: ChatRequest,
-    agent: CodingAgent = Depends(get_agent),
+    agent = Depends(get_agent),
 ) -> ChatResponse:
     """Get a complete chat response (non-streaming).
 
@@ -175,7 +175,7 @@ async def chat_complete(
 
 @router.get("/health", response_model=HealthStatus)
 async def health_check(
-    llm_engine: VLLMEngine = Depends(get_llm_engine),
+    llm_engine = Depends(get_llm_engine),
 ) -> HealthStatus:
     """Check the health status of the coding agent.
 
@@ -298,8 +298,8 @@ async def list_tools() -> Dict[str, Any]:
 
 # Initialization function to be called from main.py
 async def initialize_router(
-    llm_engine: VLLMEngine,
-    agent: CodingAgent,
+    llm_engine,
+    agent,
 ) -> None:
     """Initialize the router with global instances.
 

@@ -9,13 +9,21 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from api.router import router, initialize_router
 from agent.core import CodingAgent
 from agent.memory import ConversationMemory
 from agent.tools import get_available_tools
-from llm_server.inference import VLLMEngine
 from llm_server.config import LLMConfig
+
+# Import engines based on what's available
+try:
+    from llm_server.engine_factory import EngineFactory
+    factory_available = True
+except ImportError:
+    from llm_server.inference import VLLMEngine
+    factory_available = False
 
 # Configure logging
 logging.basicConfig(
@@ -25,8 +33,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Global instances
-llm_engine: VLLMEngine = None
-coding_agent: CodingAgent = None
+llm_engine = None
+coding_agent = None
 
 
 @asynccontextmanager
@@ -43,8 +51,21 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info(f"LLM Config: {llm_config.model_path}")
 
         # Initialize LLM engine
-        llm_engine = VLLMEngine(llm_config)
-        logger.info("LLM engine initialized")
+        engine_type = os.getenv("LLM_ENGINE_TYPE", "vllm")
+
+        if factory_available and engine_type == "ollama":
+            # Use Ollama engine
+            from llm_server.ollama_engine import OllamaEngine
+            llm_engine = OllamaEngine(llm_config)
+            logger.info(f"LLM engine initialized: Ollama with model {llm_config.model_path}")
+        elif factory_available:
+            llm_engine = EngineFactory.create_engine(llm_config)
+            logger.info(f"LLM engine initialized: {engine_type}")
+        else:
+            # Fallback to vLLM
+            from llm_server.inference import VLLMEngine
+            llm_engine = VLLMEngine(llm_config)
+            logger.info("LLM engine initialized: vLLM (fallback)")
 
         # Initialize tools
         tools = get_available_tools()
@@ -117,11 +138,14 @@ app.add_middleware(
 # Include API router
 app.include_router(router)
 
+# Serve static files (HTML interface)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 @app.get("/", include_in_schema=False)
 async def root():
-    """Redirect root to API documentation."""
-    return RedirectResponse(url="/docs")
+    """Redirect root to web interface."""
+    return RedirectResponse(url="/static/index.html")
 
 
 @app.get("/ping")
