@@ -52,6 +52,10 @@ class LLMConfig(BaseSettings):
         default="INFO",
         description="Logging level (DEBUG, INFO, WARNING, ERROR)",
     )
+    request_timeout: int = Field(
+        default=300,
+        description="Request timeout in seconds for LLM requests",
+    )
 
     class Config:
         """Pydantic config."""

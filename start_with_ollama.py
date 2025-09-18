@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Startup script for 3dSt_Coder with Ollama backend.
+Startup script for 3dSt Platform with Ollama backend.
 
 Prerequisites:
 1. Ollama installed and running (ollama serve)
@@ -73,12 +73,12 @@ def setup_environment():
     os.environ["LLM_HOST"] = "127.0.0.1"
     os.environ["LLM_PORT"] = "8000"
 
-    print(f"[START] Starting 3dSt_Coder with model: {model_name}")
+    print(f"[START] Starting 3dSt Platform with model: {model_name}")
     return True
 
 def main():
     """Main startup function."""
-    print("3dSt_Coder + Ollama Startup")
+    print("3dSt Platform + Ollama Startup")
     print("=" * 40)
 
     # Check Ollama
@@ -92,7 +92,7 @@ def main():
         sys.exit(1)
 
     # Start 3dSt_Coder
-    print("\n[START] Starting 3dSt_Coder API server...")
+    print("\n[START] Starting 3dSt Platform API server...")
     print("[WEB] Web interface will be available at: http://localhost:8000")
     print("[API] API docs available at: http://localhost:8000/docs")
     print("\n[EXAMPLES] Example prompts to try:")
@@ -117,9 +117,9 @@ def main():
         )
 
     except KeyboardInterrupt:
-        print("\n[STOP] Shutting down 3dSt_Coder...")
+        print("\n[STOP] Shutting down 3dSt Platform...")
     except Exception as e:
-        print(f"\n[ERROR] Error starting 3dSt_Coder: {e}")
+        print(f"\n[ERROR] Error starting 3dSt Platform: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":

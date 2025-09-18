@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3dSt_Coder - 5-Minute Quick Start Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-purple: #8b5cf6;
+            --accent-orange: #f97316;
+            --border-radius: 12px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: var(--primary-gradient);
+            padding: 60px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 30s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: fadeInDown 0.8s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .timer-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .timer-circle {
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255,255,255,0.3);
+            animation: pulse 2s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .timer-number {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        .timer-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Prerequisites */
+        .prerequisites {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            margin: 40px 0;
+            box-shadow: var(--shadow);
+        }
+
+        .prerequisites h2 {
+            color: var(--accent-blue);
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .prereq-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .prereq-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: var(--dark-bg);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .prereq-icon {
+            font-size: 2em;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding: 40px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(to bottom, var(--accent-blue), var(--accent-purple));
+            transform: translateX(-50%);
+        }
+
+        /* Step Cards */
+        .step-card {
+            position: relative;
+            margin: 40px 0;
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .step-card:nth-child(1) { animation-delay: 0.1s; }
+        .step-card:nth-child(2) { animation-delay: 0.2s; }
+        .step-card:nth-child(3) { animation-delay: 0.3s; }
+        .step-card:nth-child(4) { animation-delay: 0.4s; }
+        .step-card:nth-child(5) { animation-delay: 0.5s; }
+        .step-card:nth-child(6) { animation-delay: 0.6s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-card:nth-child(even) {
+            padding-left: 52%;
+        }
+
+        .step-card:nth-child(odd) {
+            padding-right: 52%;
+            text-align: right;
+        }
+
+        .step-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            position: relative;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            transition: all 0.3s ease;
+        }
+
+        .step-content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .step-number-circle {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .step-card:nth-child(odd) .step-content {
+            text-align: left;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .step-card:nth-child(odd) .step-header {
+            flex-direction: row;
+        }
+
+        .step-card:nth-child(even) .step-header {
+            flex-direction: row-reverse;
+        }
+
+        .step-icon {
+            font-size: 2.5em;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .step-title {
+            flex: 1;
+        }
+
+        .step-title h3 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .step-time {
+            color: var(--accent-green);
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        /* Code Blocks */
+        .code-block {
+            position: relative;
+            background: var(--dark-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .code-block pre {
+            color: var(--text-primary);
+            font-size: 0.95em;
+            line-height: 1.5;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-purple);
+            transform: scale(1.05);
+        }
+
+        .copy-btn.copied {
+            background: var(--accent-green);
+        }
+
+        /* Verification Blocks */
+        .verification {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
+            border-left: 4px solid var(--accent-green);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .verification-title {
+            color: var(--accent-green);
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Test Drive Section */
+        .test-drive {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            margin: 40px 0;
+            box-shadow: var(--shadow);
+        }
+
+        .test-drive h2 {
+            color: var(--accent-purple);
+            margin-bottom: 30px;
+            font-size: 2em;
+            text-align: center;
+        }
+
+        .prompts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .prompt-card {
+            background: var(--dark-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .prompt-card:hover {
+            border-color: var(--accent-purple);
+            transform: translateY(-3px);
+        }
+
+        .prompt-category {
+            color: var(--accent-blue);
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .prompt-text {
+            font-family: 'Courier New', monospace;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        /* Troubleshooting Accordion */
+        .troubleshooting {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            margin: 40px 0;
+            box-shadow: var(--shadow);
+        }
+
+        .troubleshooting h2 {
+            color: var(--accent-orange);
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .accordion-item {
+            margin-bottom: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--dark-bg);
+        }
+
+        .accordion-header {
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .accordion-header:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .accordion-icon {
+            transition: transform 0.3s ease;
+            font-size: 1.2em;
+        }
+
+        .accordion-item.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding: 0 20px;
+        }
+
+        .accordion-item.active .accordion-content {
+            max-height: 500px;
+            padding: 20px;
+        }
+
+        /* Success Indicators */
+        .success-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent-green);
+            font-weight: 600;
+            margin: 10px 0;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2em;
+            }
+
+            .timeline::before {
+                left: 30px;
+            }
+
+            .step-card:nth-child(even),
+            .step-card:nth-child(odd) {
+                padding-left: 60px;
+                padding-right: 20px;
+                text-align: left;
+            }
+
+            .step-number-circle {
+                left: 30px;
+                transform: translate(-50%, -50%);
+            }
+
+            .step-card:nth-child(even) .step-header {
+                flex-direction: row;
+            }
+
+            .timer-container {
+                gap: 15px;
+            }
+
+            .timer-circle {
+                width: 80px;
+                height: 80px;
+            }
+
+            .timer-number {
+                font-size: 1.8em;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-blue);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .next-steps {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .next-step-link {
+            color: var(--accent-blue);
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 2px solid var(--accent-blue);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .next-step-link:hover {
+            background: var(--accent-blue);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="hero-content">
+            <h1>🚀 3dSt_Coder Quick Start</h1>
+            <p style="font-size: 1.3em; opacity: 0.95;">Get your AI coding assistant running in just 5 minutes!</p>
+            <div class="timer-container">
+                <div class="timer-circle">
+                    <div class="timer-number">5</div>
+                    <div class="timer-label">MINUTES</div>
+                </div>
+                <div class="timer-circle">
+                    <div class="timer-number">6</div>
+                    <div class="timer-label">STEPS</div>
+                </div>
+                <div class="timer-circle">
+                    <div class="timer-number">0</div>
+                    <div class="timer-label">CLOUD</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Prerequisites -->
+        <div class="prerequisites">
+            <h2>📋 Prerequisites</h2>
+            <div class="prereq-list">
+                <div class="prereq-item">
+                    <span class="prereq-icon">💻</span>
+                    <div>
+                        <strong>Windows Machine</strong>
+                        <div style="color: var(--text-secondary); font-size: 0.9em;">With Python 3.12 installed</div>
+                    </div>
+                </div>
+                <div class="prereq-item">
+                    <span class="prereq-icon">🧠</span>
+                    <div>
+                        <strong>4GB+ RAM</strong>
+                        <div style="color: var(--text-secondary); font-size: 0.9em;">For model inference</div>
+                    </div>
+                </div>
+                <div class="prereq-item">
+                    <span class="prereq-icon">💾</span>
+                    <div>
+                        <strong>10GB+ Disk Space</strong>
+                        <div style="color: var(--text-secondary); font-size: 0.9em;">For models and data</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="timeline">
+            <!-- Step 1 -->
+            <div class="step-card">
+                <div class="step-number-circle">1</div>
+                <div class="step-content">
+                    <div class="step-header">
+                        <span class="step-icon">🦙</span>
+                        <div class="step-title">
+                            <h3>Install Ollama</h3>
+                            <span class="step-time">⏱️ 2 minutes</span>
+                        </div>
+                    </div>
+                    <p>Ollama provides the local LLM backend for 3dSt_Coder.</p>
+
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre># Option A: Download installer from https://ollama.ai
+
+# Option B: Use Chocolatey
+choco install ollama</pre>
+                    </div>
+
+                    <div class="verification">
+                        <div class="verification-title">
+                            ✅ Verify Installation
+                        </div>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            <pre>ollama --version
+# Should show: ollama version 0.x.x</pre>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre># Start Ollama Server
+ollama serve
+# Keep this terminal open!</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step-card">
+                <div class="step-number-circle">2</div>
+                <div class="step-content">
+                    <div class="step-header">
+                        <span class="step-icon">📦</span>
+                        <div class="step-title">
+                            <h3>Install Python Dependencies</h3>
+                            <span class="step-time">⏱️ 1 minute</span>
+                        </div>
+                    </div>
+                    <p>Install all required Python packages for 3dSt_Coder.</p>
+
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre>cd F:\GitHub\localLLM
+
+/c/Python312/python.exe -m pip install pydantic fastapi uvicorn aiosqlite gitpython requests aiofiles sse-starlette httpx pydantic-settings "passlib[bcrypt]" "python-jose[cryptography]" python-multipart email-validator
+
+set PYTHONIOENCODING=utf-8</pre>
+                    </div>
+
+                    <div class="verification">
+                        <div class="verification-title">
+                            ✅ Test Installation
+                        </div>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            <pre>/c/Python312/python.exe -c "import fastapi, uvicorn, aiosqlite; print('Dependencies installed successfully')"</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step-card">
+                <div class="step-number-circle">3</div>
+                <div class="step-content">
+                    <div class="step-header">
+                        <span class="step-icon">🤖</span>
+                        <div class="step-title">
+                            <h3>Download a Model</h3>
+                            <span class="step-time">⏱️ 1 minute</span>
+                        </div>
+                    </div>
+                    <p>Download a coding-focused LLM model.</p>
+
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre># Choose one model (codellama recommended):
+ollama pull codellama:7b         # 4GB - Great for coding
+ollama pull deepseek-coder:6.7b  # 4GB - Excellent for code
+ollama pull codegemma:7b         # 4GB - Google's coding model</pre>
+                    </div>
+
+                    <div class="verification">
+                        <div class="verification-title">
+                            ✅ Check Available Models
+                        </div>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            <pre>ollama list
+# Should show your downloaded model with size info</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="step-card">
+                <div class="step-number-circle">4</div>
+                <div class="step-content">
+                    <div class="step-header">
+                        <span class="step-icon">👤</span>
+                        <div class="step-title">
+                            <h3>Create Admin User</h3>
+                            <span class="step-time">⏱️ 1 minute</span>
+                        </div>
+                    </div>
+                    <p>Set up your administrator account for secure access.</p>
+
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre>cd F:\GitHub\localLLM
+
+# Create admin user interactively
+/c/Python312/python.exe scripts/create_admin.py create</pre>
+                    </div>
+
+                    <div class="success-indicator">
+                        <span>✅</span>
+                        <span>Follow the prompts to create username and strong password</span>
+                    </div>
+
+                    <div class="verification">
+                        <div class="verification-title">
+                            ✅ Verify User Creation
+                        </div>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            <pre>/c/Python312/python.exe scripts/create_admin.py list
+# Should show your admin user with 👑 icon</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="step-card">
+                <div class="step-number-circle">5</div>
+                <div class="step-content">
+                    <div class="step-header">
+                        <span class="step-icon">🚀</span>
+                        <div class="step-title">
+                            <h3>Launch 3dSt_Coder</h3>
+                            <span class="step-time">⏱️ 1 minute</span>
+                        </div>
+                    </div>
+                    <p>Start the 3dSt_Coder web interface.</p>
+
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre>cd F:\GitHub\localLLM
+
+# Auto-detect and start with available model
+/c/Python312/python.exe start_with_ollama.py</pre>
+                    </div>
+
+                    <div class="success-indicator">
+                        <span>✅</span>
+                        <span>Server will start on http://localhost:8000</span>
+                    </div>
+
+                    <div class="verification">
+                        <div class="verification-title">
+                            ✅ Test Server Status
+                        </div>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            <pre>curl http://localhost:8000/ping
+# Should return: {"status": "pong", "message": "Coding agent API is running"}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 6 -->
+            <div class="step-card">
+                <div class="step-number-circle">6</div>
+                <div class="step-content">
+                    <div class="step-header">
+                        <span class="step-icon">🎉</span>
+                        <div class="step-title">
+                            <h3>Login and Test</h3>
+                            <span class="step-time">⏱️ 1 minute</span>
+                        </div>
+                    </div>
+                    <p>Access the web interface and start coding!</p>
+
+                    <ol style="margin: 20px 0; padding-left: 20px;">
+                        <li>Open your browser</li>
+                        <li>Navigate to <strong style="color: var(--accent-blue);">http://localhost:8000</strong></li>
+                        <li>Login with your admin credentials</li>
+                        <li>Test with: "Hello, can you help me with coding?"</li>
+                    </ol>
+
+                    <div class="success-indicator">
+                        <span>🎉</span>
+                        <span>Success! You're ready to start coding with AI assistance!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Drive Section -->
+        <div class="test-drive">
+            <h2>🧪 Test Drive - Try These Prompts</h2>
+            <div class="prompts-grid">
+                <div class="prompt-card" onclick="copyPrompt(this)">
+                    <div class="prompt-category">📁 File Operations</div>
+                    <div class="prompt-text">Read the README.md file and summarize it</div>
+                </div>
+                <div class="prompt-card" onclick="copyPrompt(this)">
+                    <div class="prompt-category">🔀 Git Integration</div>
+                    <div class="prompt-text">Check the git status of this repository</div>
+                </div>
+                <div class="prompt-card" onclick="copyPrompt(this)">
+                    <div class="prompt-category">💻 Code Generation</div>
+                    <div class="prompt-text">Write a Python function to calculate the fibonacci sequence</div>
+                </div>
+                <div class="prompt-card" onclick="copyPrompt(this)">
+                    <div class="prompt-category">🧪 Testing</div>
+                    <div class="prompt-text">Run the project tests and show me the results</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="troubleshooting">
+            <h2>🚨 Quick Troubleshooting</h2>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Ollama "bind" error when running ollama serve?</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <p><strong>Error:</strong> "Error: listen tcp 127.0.0.1:11434: bind: Only one usage..."</p>
+                    <p><strong>Solution:</strong> Ollama is already running! This is normal - just continue to Step 2.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre># Verify Ollama is running
+curl http://localhost:11434/api/version</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Server won't start?</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <p>Check if port 8000 is already in use:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre># Check port 8000
+netstat -an | findstr :8000
+
+# Kill existing process
+netstat -ano | findstr :8000
+taskkill /PID [process_id] /F</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Model not found?</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre># List available models
+ollama list
+
+# Pull missing model
+ollama pull codellama:7b
+
+# Verify model works
+curl -X POST http://localhost:11434/api/show -d '{"name":"codellama:7b"}' -H "Content-Type: application/json"</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Login issues?</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <p>Reset your admin user or check password requirements:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre># Reset admin user
+/c/Python312/python.exe scripts/create_admin.py create
+
+# List existing users
+/c/Python312/python.exe scripts/create_admin.py list</pre>
+                    </div>
+                    <p style="margin-top: 15px;"><strong>Password requirements:</strong> 8+ characters with uppercase, lowercase, numbers, and symbols</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Network access denied?</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <p>Ensure you're accessing from localhost or local network:</p>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>Access from localhost (127.0.0.1)</li>
+                        <li>Allowed IP ranges: 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16</li>
+                    </ul>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre># Test network status
+curl http://localhost:8000/auth/status</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="next-steps">
+                <a href="USER_GUIDE.md" class="next-step-link">📖 User Guide</a>
+                <a href="SETUP.md" class="next-step-link">🔧 Setup Options</a>
+                <a href="TROUBLESHOOTING.md" class="next-step-link">🚨 Troubleshooting</a>
+            </div>
+            <p style="margin-top: 30px; opacity: 0.7;">🎉 You're all set! 3dSt_Coder is now running locally and privately on your machine.</p>
+        </div>
+    </div>
+
+    <script>
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.parentElement;
+            const code = codeBlock.querySelector('pre').textContent;
+
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Copy prompt functionality
+        function copyPrompt(card) {
+            const promptText = card.querySelector('.prompt-text').textContent;
+
+            navigator.clipboard.writeText(promptText).then(() => {
+                const originalBorder = card.style.borderColor;
+                card.style.borderColor = '#10b981';
+
+                setTimeout(() => {
+                    card.style.borderColor = originalBorder;
+                }, 1000);
+            });
+        }
+
+        // Accordion functionality
+        function toggleAccordion(header) {
+            const item = header.parentElement;
+            const wasActive = item.classList.contains('active');
+
+            // Close all accordion items
+            document.querySelectorAll('.accordion-item').forEach(accItem => {
+                accItem.classList.remove('active');
+            });
+
+            // Open clicked item if it wasn't already open
+            if (!wasActive) {
+                item.classList.add('active');
+            }
+        }
+
+        // Animate elements on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all step cards
+        document.querySelectorAll('.step-card').forEach(card => {
+            card.style.animationPlayState = 'paused';
+            observer.observe(card);
+        });
+
+        // Add smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add countdown timer animation
+        let timeLeft = 5;
+        const timerNumber = document.querySelector('.timer-number');
+
+        function updateTimer() {
+            if (timeLeft > 0 && window.scrollY < 100) {
+                setTimeout(() => {
+                    timeLeft--;
+                    if (timerNumber) {
+                        timerNumber.textContent = timeLeft;
+                    }
+                    updateTimer();
+                }, 60000); // Update every minute
+            }
+        }
+
+        // Start timer when page loads
+        window.addEventListener('load', updateTimer);
+    </script>
+</body>
+</html>

@@ -47,7 +47,7 @@ class OllamaEngine:
                     "POST",
                     f"{self.base_url}/api/generate",
                     json=payload,
-                    timeout=60.0
+                    timeout=self.cfg.request_timeout
                 ) as response:
                     response.raise_for_status()
 
@@ -64,7 +64,17 @@ class OllamaEngine:
 
         except Exception as e:
             logger.error(f"Ollama generation error: {e}")
-            yield f"Error: {str(e)}"
+
+            # Provide specific error messages for common issues
+            error_str = str(e).lower()
+            if "timeout" in error_str or "time" in error_str:
+                yield f"Error: Request timed out after {self.cfg.request_timeout}s. The model may be busy or the query too complex. Try a simpler request."
+            elif "connection" in error_str:
+                yield "Error: Could not connect to Ollama server. Please ensure Ollama is running on port 11434."
+            elif "model" in error_str:
+                yield f"Error: Model '{self.model_name}' not found. Please check the model name or pull it with 'ollama pull {self.model_name}'."
+            else:
+                yield f"Error: {str(e)}"
 
     async def shutdown(self) -> None:
         """Cleanup (nothing needed for Ollama)."""

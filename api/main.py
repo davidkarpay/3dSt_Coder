@@ -87,6 +87,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         )
         logger.info("Coding agent initialized")
 
+        # Initialize authentication system
+        from auth.middleware import auth_state
+        await auth_state.initialize()
+
         # Initialize router with dependencies
         await initialize_router(llm_engine, coding_agent)
 
@@ -135,8 +139,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API router
+# Add network security middleware
+from auth.middleware import NetworkSecurityMiddleware
+app.add_middleware(NetworkSecurityMiddleware)
+
+# Include routers
 app.include_router(router)
+
+# Include authentication router
+from auth.router import router as auth_router
+app.include_router(auth_router)
 
 # Serve static files (HTML interface)
 app.mount("/static", StaticFiles(directory="static"), name="static")

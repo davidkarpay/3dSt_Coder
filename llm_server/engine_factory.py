@@ -40,6 +40,10 @@ class EngineFactory:
             from .llama_cpp_engine import LlamaCppEngine
             return LlamaCppEngine(cfg)
 
+        elif engine_type == "multi":
+            from .multi_engine import MultiEngine
+            return MultiEngine(cfg)
+
         else:
             raise ValueError(f"Unknown engine type: {engine_type}")
 
@@ -66,4 +70,7 @@ export LLM_MODEL_PATH=microsoft/DialoGPT-medium
 # Use llama.cpp
 export LLM_ENGINE_TYPE=llama_cpp
 export LLM_MODEL_PATH=/models/llama-2-7b.gguf
+
+# Use multi-engine (task-based routing)
+export LLM_ENGINE_TYPE=multi
 """

@@ -26,6 +26,9 @@ async def run_basic_tests():
         from agent import CodingAgent, ConversationMemory
         from agent.tools import get_available_tools
         from api.router import router
+        from auth.security import verify_password, create_access_token
+        from auth.network import is_ip_allowed, get_client_ip
+        from auth.models import UserRole, TokenData
         print("   [PASS] All modules import successfully")
         tests_passed += 1
     except ImportError as e:
@@ -130,6 +133,77 @@ async def run_basic_tests():
         tests_passed += 1
     except Exception as e:
         print(f"   [FAIL] Tool pattern test failed: {e}")
+        tests_failed += 1
+
+    # Test 8: Authentication security
+    print("\n8. Testing authentication security...")
+    try:
+        from auth.security import get_password_hash, verify_password, validate_password_strength
+
+        # Test password hashing
+        password = "TestPass123!"
+        hashed = get_password_hash(password)
+        assert verify_password(password, hashed)
+        assert not verify_password("wrong", hashed)
+
+        # Test password strength validation
+        result = validate_password_strength("StrongP@ss123!")
+        assert result["valid"]
+        assert result["strength"] in ["medium", "strong"]
+
+        print("   [PASS] Authentication security working")
+        tests_passed += 1
+    except Exception as e:
+        print(f"   [FAIL] Authentication security failed: {e}")
+        tests_failed += 1
+
+    # Test 9: Network security
+    print("\n9. Testing network security...")
+    try:
+        from auth.network import is_ip_allowed, is_localhost, is_private_network
+
+        # Test localhost detection
+        assert is_localhost("127.0.0.1")
+        assert is_localhost("127.1.2.3")
+
+        # Test private network detection
+        assert is_private_network("192.168.1.1")
+        assert is_private_network("10.0.0.1")
+        assert not is_private_network("8.8.8.8")
+
+        print("   [PASS] Network security working")
+        tests_passed += 1
+    except Exception as e:
+        print(f"   [FAIL] Network security failed: {e}")
+        tests_failed += 1
+
+    # Test 10: JWT token functionality
+    print("\n10. Testing JWT token functionality...")
+    try:
+        from auth.security import create_access_token, verify_token
+        from auth.models import UserRole
+
+        # Create test token
+        user_data = {
+            "sub": "testuser",
+            "user_id": 123,
+            "role": "user"
+        }
+        token = create_access_token(user_data)
+        assert isinstance(token, str)
+        assert len(token) > 0
+
+        # Verify token
+        token_data = verify_token(token)
+        assert token_data is not None
+        assert token_data.username == "testuser"
+        assert token_data.user_id == 123
+        assert token_data.role == UserRole.USER
+
+        print("   [PASS] JWT token functionality working")
+        tests_passed += 1
+    except Exception as e:
+        print(f"   [FAIL] JWT token test failed: {e}")
         tests_failed += 1
 
     # Summary

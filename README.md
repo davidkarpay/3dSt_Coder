@@ -1,31 +1,39 @@
-# 🤖 3dSt_Coder
+# 🚀 3dSt Platform
 
-**A locally-hosted AI coding assistant designed for law firms**
+**A comprehensive AI application platform for building intelligent systems**
 
-3dSt_Coder is a privacy-first AI coding agent that runs entirely on your local machine, wrapping powerful open-source LLMs with developer tools and legal workflow automation.
+3dSt is a privacy-first AI platform that runs entirely on your local machine, providing a foundation for building sophisticated AI applications with multi-engine LLM support, intelligent task detection, file processing, and extensible agent capabilities.
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![Version](https://img.shields.io/badge/version-0.1.0-blue) ![Python](https://img.shields.io/badge/python-3.12-blue)
 
 ## ✨ Key Features
 
 - 🔒 **100% Local & Private** - No data leaves your machine
-- 🧠 **Multiple LLM Backends** - Ollama, OpenAI API, vLLM support
-- 🛠️ **Integrated Developer Tools** - Git, file operations, shell, testing
-- 💬 **Real-time Streaming** - Live responses with tool execution
-- 🌐 **Web Interface** - Browser-based chat with dark theme
+- 🔐 **Enterprise Security** - JWT authentication + network access control
+- 🧠 **Multi-Engine LLM Support** - Ollama, OpenAI API, vLLM backends with task routing
+- 🛠️ **Integrated Tool Ecosystem** - Git, file operations, shell, testing, and custom tools
+- 📁 **Intelligent File Processing** - Drag-and-drop uploads with content extraction
+- 🎯 **Smart Task Detection** - Automatic task classification and agent selection
+- 💬 **Real-time Streaming** - Live responses with parallel tool execution
+- 🌐 **Modern Web Interface** - Authenticated browser-based platform
+- 🔧 **Extensible Architecture** - Plugin system for custom agents and tools
 - ⚡ **Fast Setup** - Running in 5 minutes with Ollama
 
 ## 🚀 Quick Start
 
-**New to 3dSt_Coder?** Follow our 5-minute setup guide:
+**New to 3dSt Platform?** Follow our 5-minute setup guide:
 
 → **[📖 Quick Start Guide](docs/QUICK_START.md)**
 
-**Already have it installed?** Launch the web interface:
+**Already have it installed?** Launch the platform:
 
 ```bash
+# Create admin user (first time only)
+/c/Python312/python.exe scripts/create_admin.py create
+
+# Launch the platform
 /c/Python312/python.exe start_with_ollama.py
-# Open http://localhost:8000 in your browser
+# Open http://localhost:8000 and login with your admin credentials
 ```
 
 ## 📚 Documentation
@@ -34,6 +42,7 @@
 - **[🚀 Quick Start](docs/QUICK_START.md)** - Get up and running in 5 minutes
 - **[📖 User Guide](docs/USER_GUIDE.md)** - Complete usage manual with examples
 - **[🔧 Setup & Installation](docs/SETUP.md)** - Comprehensive installation options
+- **[🔐 Security Guide](docs/SECURITY.md)** - Authentication and network security
 - **[🚨 Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 
 ### For Developers
@@ -52,37 +61,37 @@ You: "Check the git status of this repository"
 ```
 
 ```
-You: "Write a Python function to validate email addresses"
-🤖: I'll create an email validation function for you:
-
-    def validate_email(email: str) -> bool:
-        import re
-        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        return re.match(pattern, email) is not None
+You: [Drag and drop a Python file]
+🤖: File uploaded successfully! I've detected this is a code review task.
+    Analyzing code structure and identifying potential improvements...
 ```
 
 ```
-You: "Run the tests and fix any failures"
-🤖: I'll run the test suite first to see what needs fixing.
-    {{tool:test_runner}}
-    → Found 3 failing tests. Let me analyze and fix them...
+You: "Create a new REST API endpoint for user management"
+🤖: I'll create a comprehensive API endpoint with proper validation:
+    {{tool:file_write}}
+    → Generated endpoint with authentication, validation, and tests
 ```
 
-## 🎯 Perfect For Law Firms
+## 🎯 Platform Applications
 
-- **Document Processing** - Extract case information and citations
-- **Legal Research** - Automated case law analysis
-- **Filing Generation** - Court document templates and automation
-- **Code Review** - Ensure legal tech solutions meet compliance standards
-- **Privacy Compliance** - 100% local processing for confidential matters
+- **Software Development** - Intelligent coding assistance with context awareness
+- **Document Processing** - Multi-format file analysis and content extraction
+- **Research & Analysis** - Automated information gathering and synthesis
+- **Process Automation** - Custom workflows with tool integration
+- **Knowledge Management** - Intelligent content organization and retrieval
+- **Quality Assurance** - Automated testing and validation workflows
 
 ## 🛡️ Security & Privacy
 
 - **Air-gapped Operation** - Works completely offline
 - **No Data Transmission** - Everything stays on your local machine
+- **JWT Authentication** - Secure user authentication with role-based access
+- **Network Access Control** - Local network/VPN access only
 - **Sandboxed Execution** - Tools run in controlled environments
 - **Path Protection** - File operations restricted to project directories
 - **Command Filtering** - Dangerous operations automatically blocked
+- **User Isolation** - Conversation history scoped per user
 
 ## 🆘 Need Help?
 
@@ -100,4 +109,4 @@ You: "Run the tests and fix any failures"
 
 ---
 
-**Ready to get started?** 👉 **[Begin with Quick Start](docs/QUICK_START.md)**
+**Ready to build with 3dSt?** 👉 **[Begin with Quick Start](docs/QUICK_START.md)**

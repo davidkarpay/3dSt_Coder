@@ -76,6 +76,18 @@ class ChatRequest(BaseModel):
         le=2.0,
         description="Override sampling temperature",
     )
+    preferred_model: Optional[str] = Field(
+        default=None,
+        description="Preferred model to use for this request"
+    )
+    task_type: Optional[str] = Field(
+        default=None,
+        description="Explicit task type (overrides auto-detection)"
+    )
+    attached_files: Optional[List[str]] = Field(
+        default=None,
+        description="List of file IDs to attach to this conversation"
+    )
 
 
 class ChatStreamResponse(BaseModel):
@@ -141,3 +153,70 @@ class HealthStatus(BaseModel):
     tools_available: List[str] = Field(description="List of available tools")
     memory_usage: Dict[str, Any] = Field(description="Memory usage statistics")
     uptime_seconds: float = Field(description="Agent uptime in seconds")
+
+
+class ModelInfo(BaseModel):
+    """Information about an available model."""
+
+    name: str = Field(description="Model name/identifier")
+    engine_type: str = Field(description="Engine type (ollama, openai, vllm, etc.)")
+    description: str = Field(description="Human-readable description")
+    available: bool = Field(description="Whether model is currently available")
+    task_types: List[str] = Field(description="Recommended task types for this model")
+
+
+class TaskTypeInfo(BaseModel):
+    """Information about a task type and its assigned model."""
+
+    task_type: str = Field(description="Task type identifier")
+    description: str = Field(description="Human-readable description")
+    current_model: str = Field(description="Currently assigned model")
+    available_models: List[str] = Field(description="Models suitable for this task")
+
+
+class ModelConfigRequest(BaseModel):
+    """Request to configure model assignment for a task type."""
+
+    task_type: str = Field(description="Task type to configure")
+    model_name: str = Field(description="Model to assign to this task type")
+
+
+class ModelStatusResponse(BaseModel):
+    """Response with current model configuration status."""
+
+    engine_type: str = Field(description="Current engine type")
+    available_models: List[ModelInfo] = Field(description="All available models")
+    task_configurations: List[TaskTypeInfo] = Field(description="Task type configurations")
+    default_model: str = Field(description="Default fallback model")
+
+
+class FileAttachment(BaseModel):
+    """File attachment metadata."""
+
+    filename: str = Field(description="Original filename")
+    file_id: str = Field(description="Unique file identifier")
+    content_type: str = Field(description="MIME content type")
+    file_size: int = Field(description="File size in bytes")
+    uploaded_at: datetime = Field(description="Upload timestamp")
+    processed_content: Optional[str] = Field(default=None, description="Extracted text content")
+
+
+class FileUploadResponse(BaseModel):
+    """Response after successful file upload."""
+
+    file_id: str = Field(description="Unique file identifier")
+    filename: str = Field(description="Original filename")
+    content_type: str = Field(description="MIME content type")
+    file_size: int = Field(description="File size in bytes")
+    processed: bool = Field(description="Whether file content was extracted")
+    message: str = Field(description="Status message")
+
+
+class TaskDetectionResult(BaseModel):
+    """Result of automatic task type detection."""
+
+    detected_task: str = Field(description="Detected task type")
+    confidence: float = Field(ge=0.0, le=1.0, description="Detection confidence score")
+    reasoning: str = Field(description="Explanation of detection logic")
+    suggested_subagent: Optional[str] = Field(default=None, description="Recommended subagent")
+    alternative_tasks: List[str] = Field(default_factory=list, description="Alternative task suggestions")

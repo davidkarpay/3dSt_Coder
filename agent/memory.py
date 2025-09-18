@@ -20,6 +20,7 @@ class Message:
     timestamp: datetime = field(default_factory=datetime.now)
     tool: Optional[str] = None  # Tool name if role is 'tool'
     metadata: Dict[str, Any] = field(default_factory=dict)
+    file_attachments: List[str] = field(default_factory=list)  # List of file IDs
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert message to dictionary."""
@@ -32,6 +33,8 @@ class Message:
             data["tool"] = self.tool
         if self.metadata:
             data["metadata"] = self.metadata
+        if self.file_attachments:
+            data["file_attachments"] = self.file_attachments
         return data
 
 
@@ -90,6 +93,15 @@ class ConversationMemory:
             )
             """
         )
+
+        # Add file_attachments column if it doesn't exist
+        try:
+            await self._db_connection.execute(
+                "ALTER TABLE conversations ADD COLUMN file_attachments TEXT"
+            )
+        except Exception:
+            # Column already exists or other issue, continue
+            pass
         await self._db_connection.execute(
             """
             CREATE INDEX IF NOT EXISTS idx_project_timestamp
@@ -105,7 +117,7 @@ class ConversationMemory:
 
         cursor = await self._db_connection.execute(
             """
-            SELECT role, content, tool, metadata, timestamp
+            SELECT role, content, tool, metadata, file_attachments, timestamp
             FROM conversations
             WHERE project_id = ?
             ORDER BY timestamp DESC
@@ -118,8 +130,9 @@ class ConversationMemory:
         self.messages = []
 
         for row in reversed(rows):  # Reverse to get chronological order
-            role, content, tool, metadata_str, timestamp_str = row
+            role, content, tool, metadata_str, file_attachments_str, timestamp_str = row
             metadata = json.loads(metadata_str) if metadata_str else {}
+            file_attachments = json.loads(file_attachments_str) if file_attachments_str else []
             timestamp = datetime.fromisoformat(timestamp_str)
 
             self.messages.append(
@@ -128,19 +141,25 @@ class ConversationMemory:
                     content=content,
                     tool=tool,
                     metadata=metadata,
+                    file_attachments=file_attachments,
                     timestamp=timestamp,
                 )
             )
 
         logger.info(f"Loaded {len(self.messages)} messages from database")
 
-    async def add_user_message(self, content: str) -> None:
+    async def add_user_message(self, content: str, file_attachments: Optional[List[str]] = None) -> None:
         """Add a user message to the conversation.
 
         Args:
             content: User's message content
+            file_attachments: Optional list of file IDs attached to this message
         """
-        message = Message(role="user", content=content)
+        message = Message(
+            role="user",
+            content=content,
+            file_attachments=file_attachments or []
+        )
         self.messages.append(message)
         await self._persist_message(message)
         await self._truncate_if_needed()
@@ -188,8 +207,8 @@ class ConversationMemory:
 
         await self._db_connection.execute(
             """
-            INSERT INTO conversations (project_id, role, content, tool, metadata, timestamp)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO conversations (project_id, role, content, tool, metadata, file_attachments, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 self.project_id,
@@ -197,6 +216,7 @@ class ConversationMemory:
                 message.content,
                 message.tool,
                 json.dumps(message.metadata) if message.metadata else None,
+                json.dumps(message.file_attachments) if message.file_attachments else None,
                 message.timestamp.isoformat(),
             ),
         )

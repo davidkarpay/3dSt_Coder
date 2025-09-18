@@ -103,10 +103,19 @@ class MultiEngine:
         self,
         prompt: str,
         task_type: Optional[str] = None,
+        preferred_model: Optional[str] = None,
         stop: Optional[List[str]] = None,
         **kwargs
     ) -> AsyncIterator[str]:
         """Generate response using appropriate model for the task."""
+
+        # If preferred_model is specified, try to find engine with that model
+        if preferred_model:
+            for task, engine_info in self.engines.items():
+                if preferred_model in engine_info["config"].model_path:
+                    task_type = task
+                    logger.info(f"Using preferred model '{preferred_model}' from {task} engine")
+                    break
 
         # Auto-detect task if not specified
         if task_type is None:
@@ -126,7 +135,8 @@ class MultiEngine:
             return
 
         engine = self.engines[task_type]["engine"]
-        logger.info(f"Using {task_type} engine for generation")
+        model_name = self.engines[task_type]["config"].model_path
+        logger.info(f"Using {task_type} engine ({model_name}) for generation")
 
         try:
             async for token in engine.generate(prompt, stop=stop, **kwargs):

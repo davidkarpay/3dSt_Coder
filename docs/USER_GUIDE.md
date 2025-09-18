@@ -1,10 +1,11 @@
-# 📖 3dSt_Coder User Guide
+# 📖 3dSt Platform User Guide
 
-Complete guide to using 3dSt_Coder effectively for coding tasks and legal workflows.
+Complete guide to using 3dSt Platform for development, automation, and intelligent task processing.
 
 ## Table of Contents
 
 - [Getting Started](#getting-started)
+- [Authentication & Security](#authentication--security)
 - [Understanding the Interface](#understanding-the-interface)
 - [Core Features](#core-features)
 - [Tool System](#tool-system)
@@ -28,23 +29,104 @@ Complete guide to using 3dSt_Coder effectively for coding tasks and legal workfl
 
 ### First Steps
 
-1. **Launch the Interface**
+1. **Create Admin User** (First time only)
+   ```bash
+   /c/Python312/python.exe scripts/create_admin.py create
+   ```
+
+2. **Launch the Interface**
    ```bash
    /c/Python312/python.exe start_with_ollama.py
    ```
 
-2. **Open Your Browser**
+3. **Open Your Browser**
    Navigate to `http://localhost:8000`
 
-3. **Start Your First Conversation**
+4. **Login**
+   Enter your admin credentials to access the secure interface
+
+5. **Start Your First Conversation**
    Try: *"Hello! Can you help me understand this codebase?"*
+
+## Authentication & Security
+
+### Security Overview
+
+3dSt_Coder implements enterprise-grade security features designed specifically for law firms and sensitive environments:
+
+- **🔐 JWT Authentication** - Secure token-based user authentication
+- **🛡️ Network Access Control** - Local network/VPN access only
+- **👤 Role-Based Access** - Admin and user roles with appropriate permissions
+- **🔒 User Isolation** - Each user has their own conversation history
+- **🔑 Strong Password Policy** - Enforced password strength requirements
+
+### Login Process
+
+1. **Network Validation**
+   - System automatically validates your IP address
+   - Only local network (192.168.x.x, 10.x.x.x) and localhost (127.0.0.1) access allowed
+   - Green checkmark indicates network access is permitted
+
+2. **User Authentication**
+   - Enter your username and password
+   - JWT token issued for 8-hour session
+   - Token automatically refreshed during active use
+
+3. **Session Management**
+   - Your session persists across browser tabs
+   - Automatic logout after token expiration
+   - Manual logout available via user menu
+
+### User Management
+
+**Admin Functions:**
+- Create new user accounts
+- Deactivate user accounts
+- View user list and activity
+- Manage system settings
+
+**Password Requirements:**
+- Minimum 8 characters
+- Must include uppercase and lowercase letters
+- Must include at least one number
+- Must include at least one special character
+- Cannot be a common password
+
+### Network Security
+
+**Allowed Networks:**
+- `127.0.0.0/8` - Localhost access
+- `10.0.0.0/8` - Private Class A networks
+- `172.16.0.0/12` - Private Class B networks
+- `192.168.0.0/16` - Private Class C networks
+- Custom VPN subnets (configurable)
+
+**Access Denied Scenarios:**
+- Public internet IP addresses
+- Unrecognized network ranges
+- Invalid authentication credentials
+- Expired session tokens
+
+### Privacy Features
+
+- **Conversation Isolation** - Each user sees only their own chat history
+- **No External Calls** - All processing happens locally
+- **Encrypted Storage** - Passwords are bcrypt hashed
+- **Session Tracking** - Audit trail for security monitoring
 
 ## Understanding the Interface
 
 ### Web Chat Interface
 
-The 3dSt_Coder interface includes:
+The 3dSt_Coder interface has two main screens:
 
+**Login Screen:**
+- **Network Status** - Shows your IP and network access validation
+- **Login Form** - Username and password fields
+- **Security Indicators** - Displays authentication requirements
+
+**Chat Interface (After Login):**
+- **User Info Bar** - Shows logged-in user and logout button
 - **Message Area** - Shows conversation history with syntax highlighting
 - **Input Box** - Where you type your requests and questions
 - **Status Indicators** - Shows when tools are running

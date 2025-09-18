@@ -4,155 +4,247 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-3dSt_Coder is a locally-hosted AI coding assistant designed for law firms, providing privacy-first code generation and development tools with multi-engine LLM support (Ollama, OpenAI API, vLLM) and a ReAct-pattern agent.
+3dSt is a comprehensive AI application platform designed for building intelligent systems with multi-engine LLM support (Ollama, OpenAI, vLLM), implementing a ReAct-pattern agent with parallel execution capabilities, intelligent task detection, file processing, and enterprise authentication.
 
 ## Common Development Commands
 
-### Windows Setup
+### Setup & Dependencies
 ```bash
-# Install dependencies using Python 3.12
-/c/Python312/python.exe -m pip install pydantic fastapi uvicorn aiosqlite gitpython requests aiofiles sse-starlette httpx pydantic-settings
+# Install all dependencies (Windows Python 3.12)
+/c/Python312/python.exe -m pip install pydantic fastapi uvicorn aiosqlite gitpython requests aiofiles sse-starlette httpx pydantic-settings "passlib[bcrypt]" "python-jose[cryptography]" python-multipart email-validator pytest pytest-asyncio psutil pyyaml
 
-# Set encoding for Windows
+# Alternative: Poetry dependency management (if available)
+poetry install
+poetry install --extras vllm  # Include vLLM support
+
+# Windows encoding fix (run before any Python commands)
 set PYTHONIOENCODING=utf-8
+
+# Create admin user (first time only)
+/c/Python312/python.exe scripts/create_admin.py create
+
+# List existing users
+/c/Python312/python.exe scripts/create_admin.py list
 ```
 
-### Running Services
-
-#### With Ollama (Recommended)
+### Running the Service
 ```bash
-# Start with auto-detection of available models
+# Auto-detect and start with Ollama (recommended)
 /c/Python312/python.exe start_with_ollama.py
 
-# Start with specific models
-/c/Python312/python.exe start_mistral.py  # Uses mistral:7b-instruct-q4_K_M
-/c/Python312/python.exe start_saul.py     # Uses adrienbrault/saul-instruct-v1:q4_k_m
+# Start with specific Ollama models
+/c/Python312/python.exe start_mistral.py    # mistral:7b-instruct-q4_K_M
+/c/Python312/python.exe start_saul.py       # adrienbrault/saul-instruct-v1:q4_k_m
 
-# Pull Ollama models if needed
-ollama pull codellama:7b          # 4GB - Great for coding
-ollama pull deepseek-coder:6.7b   # 4GB - Excellent for code
-ollama pull mistral:7b-instruct-q4_K_M
-```
-
-#### Direct API Server
-```bash
-# Set engine type and model
+# Direct API server with environment variables
 set LLM_ENGINE_TYPE=ollama
 set LLM_MODEL_PATH=codellama:7b
-
-# Start API server
 /c/Python312/python.exe -m api.main
+
+# Pull recommended Ollama models
+ollama pull codellama:7b
+ollama pull deepseek-coder:6.7b
+ollama pull mistral:7b-instruct-q4_K_M
 ```
 
 ### Testing
 ```bash
-# Run basic functionality tests
+# Quick functionality check (no pytest needed)
 /c/Python312/python.exe run_tests.py
 
-# Run pytest if available
-/c/Python312/python.exe -m pytest llm_server/tests/ -v
+# Full test suite with comprehensive reporting
+/c/Python312/python.exe test_all.py
+
+# All tests with short traceback and limited failures
+/c/Python312/python.exe -m pytest --tb=short --maxfail=3
+
+# Module-specific tests
 /c/Python312/python.exe -m pytest agent/tests/ -v
 /c/Python312/python.exe -m pytest api/tests/ -v
+/c/Python312/python.exe -m pytest auth/tests/ -v
+/c/Python312/python.exe -m pytest llm_server/tests/ -v
+
+# Parallel execution tests
+/c/Python312/python.exe -m pytest agent/tests/test_parallel.py -v
+/c/Python312/python.exe -m pytest agent/tests/test_parallel_integration.py -v
+/c/Python312/python.exe -m pytest agent/tests/test_parallel_performance.py -v
+
+# Run all parallel-related tests together
+/c/Python312/python.exe -m pytest agent/tests/test_parallel*.py -v
+
+# Single test execution
+/c/Python312/python.exe -m pytest agent/tests/test_core.py::TestCodingAgent::test_concurrent_chat_sessions -v
+
+# Quick test run with minimal output
+/c/Python312/python.exe -m pytest --tb=short -q
+
+# Test with coverage reporting
+/c/Python312/python.exe -m pytest --cov=llm_server --cov=agent --cov=api --cov=auth --cov-report=html
 ```
 
-### Checking Ollama Status
+### Code Quality
 ```bash
-# Check if Ollama server is running
-curl http://localhost:11434/api/version
+# Linting
+/c/Python312/python.exe -m ruff check .
+/c/Python312/python.exe -m ruff check . --fix
 
-# List available models
-ollama list
+# Formatting
+/c/Python312/python.exe -m black .
+
+# Type checking
+/c/Python312/python.exe -m mypy llm_server agent api auth
 ```
 
 ## Architecture
 
-### LLM Engines
+### Multi-Engine LLM Support
 
-The project supports multiple LLM backends through a factory pattern (`llm_server/engine_factory.py`):
+The `EngineFactory` (`llm_server/engine_factory.py`) creates engines based on `LLM_ENGINE_TYPE`:
+- **ollama**: Local Ollama models via HTTP API
+- **openai**: OpenAI-compatible endpoints
+- **vllm**: CUDA-accelerated inference
+- **multi**: Task-based routing between engines
+- **transformers**: HuggingFace transformers (optional)
+- **llama_cpp**: GGML/GGUF models (optional)
 
-1. **OllamaEngine** (`ollama_engine.py`) - Ollama HTTP API integration for local models
-2. **OpenAIEngine** (`openai_engine.py`) - OpenAI API compatible endpoints
-3. **VLLMEngine** (`inference.py`) - vLLM CUDA-accelerated inference for MoE models
-4. **MultiEngine** (`multi_engine.py`) - Task-based routing to different models
+### ReAct Agent Pattern
 
-Engine selection is controlled by the `LLM_ENGINE_TYPE` environment variable.
+`CodingAgent` (`agent/core.py`) uses tool invocation syntax:
+- Single tool: `{{tool:name:args}}`
+- Parallel execution: `{{parallel:[tool1, tool2]}}`
+- Results: `{{result:content}}`
 
-### Agent System
+Memory persists via SQLite (`agent/memory.py`) with token-aware context management.
 
-The **CodingAgent** (`agent/core.py`) implements a ReAct (Reasoning + Acting) pattern:
-- Tool invocation syntax: `{{tool:name:args}}`
-- Tool result format: `{{result:content}}`
-- Available tools:
-  - `file_read` - Read file contents with path protection
-  - `file_write` - Write/create files in project scope
-  - `git_status`, `git_diff`, `git_commit` - Git operations
-  - `shell` - Sandboxed command execution
-  - `test_runner` - Execute project tests
-- Conversation persistence via SQLite (`agent/memory.py`)
-- Token-budget aware context management
+### Parallel Execution System
 
-### API Layer
+The `Orchestrator` (`agent/orchestrator.py`) and `SubAgent` (`agent/subagent.py`) enable:
+- Task decomposition with dependency graphs
+- Concurrent execution (default limit: 5)
+- Performance metrics collection
+- Specialized parallel tools (`agent/tools/parallel.py`)
 
-FastAPI server (`api/main.py`, `api/router.py`) with OpenAPI spec:
-- `/api/v1/chat` - SSE streaming chat endpoint
-- `/api/v1/chat/complete` - Synchronous completion
-- `/api/v1/health` - Service health with LLM status
-- `/api/v1/conversations` - Conversation history management
-- `/api/v1/tools` - Tool discovery endpoint
-- `/static/` - Web chat interface (single-page app)
+### Hybrid Subagents
 
-### Tool Security
+Configure specialized agents in `.claude/agents/` with YAML frontmatter:
+```yaml
+---
+name: code-reviewer
+tools: file_read, git_diff  # Optional tool restrictions
+model: codellama            # Optional model override
+---
+```
 
-All tools implement path validation and sandboxing:
-- File operations restricted to project directory
-- Shell commands execute in controlled environment
-- Path traversal protection via `os.path.commonpath`
-- Command filtering for dangerous operations
-
-### Configuration
-
-Environment variables:
+Test hybrid subagent functionality:
 ```bash
+# Demo the hybrid subagent system
+/c/Python312/python.exe demo_hybrid_subagents.py
+
+# Test subagent integration
+/c/Python312/python.exe test_hybrid_subagents.py
+/c/Python312/python.exe test_subagent_integration.py
+```
+
+### Authentication & Security
+
+JWT-based auth (`auth/`) with:
+- User roles and permissions (`auth/models.py`)
+- Network access control (`auth/network.py`)
+- Session management (`auth/database.py`)
+- Path traversal protection in all file tools
+- Command sandboxing in shell tool
+
+### API Endpoints
+
+FastAPI server (`api/main.py`):
+- `/api/v1/chat` - SSE streaming chat (auth required)
+- `/api/v1/health` - Service health check
+- `/auth/login` - User authentication
+- `/auth/status` - Auth & network status
+- `/static/` - Web interface
+
+## Environment Variables
+
+```bash
+# LLM Configuration
 LLM_ENGINE_TYPE=ollama|openai|vllm|multi
-LLM_MODEL_PATH=model_name_or_path
+LLM_MODEL_PATH=model_name
 LLM_HOST=127.0.0.1
 LLM_PORT=8000
-OPENAI_API_KEY=your_key  # For OpenAI engine
-OPENAI_BASE_URL=endpoint  # Custom endpoint
-PYTHONIOENCODING=utf-8  # Windows encoding fix
+
+# OpenAI (if using)
+OPENAI_API_KEY=your_key
+OPENAI_BASE_URL=custom_endpoint
+
+# Authentication
+AUTH_SECRET_KEY=generate-unique-key
+AUTH_TOKEN_EXPIRE_MINUTES=480
+AUTH_REQUIRE_LOCAL_NETWORK=true
+AUTH_ALLOWED_NETWORKS=10.0.0.0/8,192.168.0.0/16
+
+# Windows
+PYTHONIOENCODING=utf-8
 ```
 
-## Project Structure
+## Key Development Patterns
 
+### Adding Tools
+Implement `BaseTool` protocol in `agent/tools/`:
+```python
+class NewTool:
+    name = "tool_name"
+    description = "Tool description"
+
+    async def run(self, *args, **kwargs) -> str:
+        # Implementation with path validation
+        return result
 ```
-├── llm_server/          # LLM engine implementations
-│   ├── engine_factory.py  # Engine selection logic
-│   ├── ollama_engine.py   # Ollama HTTP client
-│   ├── openai_engine.py   # OpenAI API client
-│   ├── inference.py       # vLLM CUDA engine
-│   └── config.py         # Pydantic settings
-├── agent/               # ReAct agent implementation
-│   ├── core.py          # Main agent loop
-│   ├── memory.py        # Conversation persistence
-│   └── tools/           # Tool implementations
-│       ├── file.py      # File I/O operations
-│       ├── git.py       # Git integration
-│       ├── shell.py     # Command execution
-│       └── test_runner.py # Test execution
-├── api/                 # FastAPI server
-│   ├── main.py         # Application entry
-│   └── router.py       # API endpoints
-├── static/             # Web interface
-│   └── index.html      # Single-page chat app
-├── data/conversations/ # SQLite storage
-├── start_*.py         # Model-specific launchers
-└── run_tests.py       # Test suite runner
+Register in `get_available_tools()` (`agent/tools/__init__.py`)
+
+### Adding LLM Engines
+Extend `BaseLLMEngine` in `llm_server/`:
+- Implement `generate()` and `generate_stream()`
+- Register in `EngineFactory.create_engine()`
+- Add config to `LLMConfig`
+
+### Testing New Features
+- Unit tests: Individual component logic
+- Integration tests: Tool interactions
+- E2E tests: Complete workflows
+- Use pytest fixtures for test data
+- Mock external dependencies
+
+### Code Standards
+- Python 3.12+ features (match, union types, walrus)
+- Type hints on all functions
+- Async/await for I/O operations
+- Pydantic for validation
+- Path validation for file operations
+
+## Performance Testing
+
+Performance benchmarks and optimization:
+```bash
+# Run performance tests
+/c/Python312/python.exe test_performance.py
+
+# Memory and resource usage analysis
+/c/Python312/python.exe -m pytest agent/tests/test_parallel_performance.py -v
 ```
 
-## Development Workflow
+## Debugging and Development
 
-1. **Before making changes:** Read existing code to understand conventions
-2. **When adding features:** Write tests first (TDD approach)
-3. **Tool development:** Inherit from `BaseTool` protocol
-4. **API changes:** Update OpenAPI schema automatically via FastAPI
-5. **Testing:** Run `run_tests.py` for basic validation
+```bash
+# Check system dependencies
+/c/Python312/python.exe -c "import fastapi, uvicorn, aiosqlite; print('Dependencies available')"
+
+# Verify Python version
+/c/Python312/python.exe --version
+
+# Check Ollama connectivity
+curl http://localhost:11434/api/tags
+
+# Network configuration check
+ipconfig
+netsh advfirewall firewall show rule name="Python"
+```

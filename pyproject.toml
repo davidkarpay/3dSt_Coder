@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "localllm"
+name = "3dst-platform"
 version = "0.1.0"
-description = "Locally hosted coding agent with MoE LLM and ReAct loop"
+description = "Comprehensive AI application platform with multi-engine LLM support and intelligent task processing"
 authors = ["Dev Team <dev@example.com>"]
 readme = "README.md"
 packages = [{include = "llm_server"}, {include = "agent"}, {include = "api"}]
@@ -96,6 +96,7 @@ testpaths = [
     "llm_server/tests",
     "agent/tests",
     "api/tests",
+    "auth/tests",
 ]
 python_files = "test_*.py"
 python_classes = "Test*"
@@ -108,7 +109,7 @@ markers = [
 asyncio_mode = "auto"
 
 [tool.coverage.run]
-source = ["llm_server", "agent", "api"]
+source = ["llm_server", "agent", "api", "auth"]
 omit = [
     "*/tests/*",
     "*/test_*.py",

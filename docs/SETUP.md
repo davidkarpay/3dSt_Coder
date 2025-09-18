@@ -6,9 +6,11 @@ Comprehensive installation and configuration guide for all deployment scenarios.
 
 - [System Requirements](#system-requirements)
 - [Installation Methods](#installation-methods)
+- [Authentication Setup](#authentication-setup)
 - [Backend Configuration](#backend-configuration)
 - [Model Setup](#model-setup)
 - [Environment Configuration](#environment-configuration)
+- [Network Security Configuration](#network-security-configuration)
 - [Verification](#verification)
 - [Performance Tuning](#performance-tuning)
 
@@ -55,7 +57,7 @@ curl -fsSL https://ollama.ai/install.sh | sh
 #### Step 2: Install Python Dependencies
 ```bash
 cd F:\GitHub\localLLM
-/c/Python312/python.exe -m pip install pydantic fastapi uvicorn aiosqlite gitpython requests aiofiles sse-starlette httpx pydantic-settings
+/c/Python312/python.exe -m pip install pydantic fastapi uvicorn aiosqlite gitpython requests aiofiles sse-starlette httpx pydantic-settings "passlib[bcrypt]" "python-jose[cryptography]" python-multipart email-validator
 set PYTHONIOENCODING=utf-8
 ```
 
@@ -82,7 +84,7 @@ ollama serve
 #### Step 2: Install Dependencies
 ```bash
 cd F:\GitHub\localLLM
-/c/Python312/python.exe -m pip install pydantic fastapi uvicorn aiosqlite gitpython requests aiofiles sse-starlette httpx pydantic-settings
+/c/Python312/python.exe -m pip install pydantic fastapi uvicorn aiosqlite gitpython requests aiofiles sse-starlette httpx pydantic-settings "passlib[bcrypt]" "python-jose[cryptography]" python-multipart email-validator
 ```
 
 #### Step 3: Configure API Key
@@ -124,6 +126,77 @@ set LLM_ENGINE_TYPE=vllm
 set LLM_MODEL_PATH=models/codellama-7b
 /c/Python312/python.exe -m api.main
 ```
+
+## Authentication Setup
+
+**⚠️ Required:** 3dSt_Coder requires authentication setup for secure access.
+
+### Step 1: Create Admin User
+
+After installing dependencies, create your first admin user:
+
+```bash
+cd F:\GitHub\localLLM
+
+# Interactive admin creation
+/c/Python312/python.exe scripts/create_admin.py create
+```
+
+**Follow the prompts:**
+- **Username:** Choose a unique admin username (3-50 characters)
+- **Email:** Optional but recommended for admin contact
+- **Password:** Strong password meeting security requirements:
+  - Minimum 8 characters
+  - At least one uppercase letter
+  - At least one lowercase letter
+  - At least one number
+  - At least one special character
+
+### Step 2: Verify Setup
+
+Test your authentication setup:
+
+```bash
+# Start server
+/c/Python312/python.exe start_with_ollama.py
+
+# Open browser and navigate to http://localhost:8000
+# Login with your admin credentials
+```
+
+### Step 3: Create Additional Users (Optional)
+
+As an admin, you can create additional user accounts:
+
+1. Login to the web interface as admin
+2. Use the admin endpoints to create users
+3. Or use the script to create additional admins:
+
+```bash
+# Create another admin user
+/c/Python312/python.exe scripts/create_admin.py create
+```
+
+### Authentication Configuration
+
+**Environment Variables:**
+```bash
+# JWT Secret Key (generate your own for production)
+set AUTH_SECRET_KEY=your-secret-key-here
+
+# Token expiration (in minutes, default: 480 = 8 hours)
+set AUTH_TOKEN_EXPIRE_MINUTES=480
+
+# Network access control
+set AUTH_REQUIRE_LOCAL_NETWORK=true
+set AUTH_ALLOWED_NETWORKS=10.0.0.0/8,192.168.0.0/16,172.16.0.0/12
+```
+
+**⚠️ Production Security:**
+- Generate a unique `AUTH_SECRET_KEY` for production deployments
+- Use strong passwords for all user accounts
+- Regularly audit user access and sessions
+- Consider rotating JWT secrets periodically
 
 ## Backend Configuration
 
@@ -244,6 +317,12 @@ LLM_MAX_CONTEXT=4096          # Context window size
 OPENAI_API_KEY=your_key_here   # API key
 OPENAI_BASE_URL=custom_url     # Custom endpoint (optional)
 
+# Authentication & Security
+AUTH_SECRET_KEY=your-secret-key # JWT signing key (generate unique)
+AUTH_TOKEN_EXPIRE_MINUTES=480  # Token expiration (8 hours)
+AUTH_REQUIRE_LOCAL_NETWORK=true # Enforce network access control
+AUTH_ALLOWED_NETWORKS=10.0.0.0/8,192.168.0.0/16 # Custom allowed networks
+
 # Performance
 PYTHONIOENCODING=utf-8         # Windows encoding fix
 ```
@@ -262,6 +341,82 @@ Each project gets its own conversation history:
 http://localhost:8000?project=project-alpha
 http://localhost:8000?project=project-beta
 ```
+
+## Network Security Configuration
+
+### IP Access Control
+
+3dSt_Coder enforces network-level access control to ensure only authorized networks can access the system.
+
+#### Default Allowed Networks
+- `127.0.0.0/8` - Localhost (always allowed)
+- `10.0.0.0/8` - Private Class A networks
+- `172.16.0.0/12` - Private Class B networks
+- `192.168.0.0/16` - Private Class C networks
+
+#### Custom Network Configuration
+
+**Allow additional VPN subnets:**
+```bash
+# Example: Allow specific VPN ranges
+set AUTH_ALLOWED_NETWORKS=10.0.0.0/8,192.168.0.0/16,172.20.0.0/16
+```
+
+**Disable network restrictions (NOT recommended for production):**
+```bash
+set AUTH_REQUIRE_LOCAL_NETWORK=false
+```
+
+#### Network Validation Process
+
+1. **Client Connection** - User attempts to access the system
+2. **IP Extraction** - System extracts client IP (supports proxy headers)
+3. **Network Check** - IP is validated against allowed networks
+4. **Access Decision** - Allow or deny based on network policy
+
+#### Troubleshooting Network Access
+
+**Access Denied Issues:**
+```bash
+# Check your current IP
+curl ipinfo.io/ip
+
+# Test from localhost
+curl http://localhost:8000/auth/status
+
+# Check allowed networks
+curl http://localhost:8000/auth/status | grep network_info
+```
+
+**Common Solutions:**
+- Ensure you're connecting from a local network
+- Add your VPN subnet to `AUTH_ALLOWED_NETWORKS`
+- Use localhost (127.0.0.1) for initial testing
+- Check firewall settings on your machine
+
+### Security Best Practices
+
+**For Law Firms and Sensitive Environments:**
+
+1. **Network Isolation**
+   - Keep 3dSt_Coder on internal networks only
+   - Use VPN for remote access
+   - Never expose to public internet
+
+2. **Authentication Security**
+   - Use strong passwords for all accounts
+   - Rotate JWT secrets regularly
+   - Monitor user sessions and activity
+
+3. **Data Protection**
+   - Regular backups of conversation data
+   - Secure deletion of sensitive conversations
+   - Audit user access patterns
+
+4. **Compliance Considerations**
+   - Document network access policies
+   - Maintain user access logs
+   - Regular security reviews
 
 ## Verification
 

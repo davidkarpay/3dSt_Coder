@@ -2,7 +2,8 @@
 
 import re
 import logging
-from typing import Dict, AsyncIterator, Any, Optional, Tuple
+import asyncio
+from typing import Dict, AsyncIterator, Any, Optional, Tuple, List
 from dataclasses import dataclass
 
 from .memory import ConversationMemory
@@ -12,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 # Pattern to detect tool calls in LLM output
 TOOL_PATTERN = re.compile(r"\{\{tool:([\w_]+)(?::(.+?))?\}\}")
+# Pattern to detect parallel tool calls
+PARALLEL_PATTERN = re.compile(r"\{\{parallel:\[([\w_,\s]*)\]\}\}")
 
 
 @dataclass
@@ -57,8 +60,9 @@ class CodingAgent:
         """
         # System message defining the agent's role and capabilities
         system_message = (
-            "You are a helpful coding assistant with access to various tools.\n"
+            "You are an intelligent AI assistant with access to powerful tools for development, analysis, and automation.\n"
             "You can use tools by including {{tool:tool_name}} or {{tool:tool_name:arg1=value1,arg2=value2}} in your response.\n"
+            "For parallel execution, use {{parallel:[tool1, tool2, tool3]}} to run multiple tools simultaneously.\n"
             "Available tools:\n"
         )
 
@@ -66,7 +70,8 @@ class CodingAgent:
         for tool_name, tool in self.tools.items():
             system_message += f"- {tool_name}: {tool.description}\n"
 
-        system_message += "\nWhen you need to use a tool, include the tool invocation pattern in your response.\n\n"
+        system_message += "\nWhen you need to use a tool, include the tool invocation pattern in your response.\n"
+        system_message += "Use parallel execution when multiple independent tools can run simultaneously.\n\n"
 
         # Get conversation history from memory
         messages = self.memory.messages
@@ -75,15 +80,15 @@ class CodingAgent:
         prompt = system_message + "Conversation:\n"
 
         for msg in messages:
-            role = msg.get("role", "user")
-            content = msg.get("content", "")
+            role = msg.role
+            content = msg.content
 
             if role == "user":
                 prompt += f"User: {content}\n"
             elif role == "assistant":
                 prompt += f"Assistant: {content}\n"
             elif role == "tool":
-                tool_name = msg.get("tool", "unknown")
+                tool_name = msg.tool or "unknown"
                 prompt += f"Tool Result ({tool_name}): {content}\n"
 
         prompt += "Assistant: "  # Start of new response
@@ -140,14 +145,65 @@ class CodingAgent:
             logger.error(f"Tool execution failed: {e}")
             raise
 
-    async def chat(self, user_msg: str) -> AsyncIterator[str]:
+    async def _execute_parallel_tools(self, tool_names: List[str]) -> Dict[str, str]:
+        """Execute multiple tools in parallel.
+
+        Args:
+            tool_names: List of tool names to execute
+
+        Returns:
+            Dictionary mapping tool names to their results
+        """
+        tasks = []
+        for tool_name in tool_names:
+            tool_call = ToolCall(name=tool_name.strip(), args={})
+            tasks.append(self._execute_tool(tool_call))
+
+        # Execute all tools in parallel
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Map results to tool names
+        tool_results = {}
+        for tool_name, result in zip(tool_names, results):
+            if isinstance(result, Exception):
+                tool_results[tool_name.strip()] = f"Error: {str(result)}"
+            else:
+                tool_results[tool_name.strip()] = result
+
+        return tool_results
+
+    def _detect_parallel_tools(self, text: str) -> Optional[List[str]]:
+        """Detect parallel tool invocation pattern.
+
+        Args:
+            text: Text that may contain parallel tool pattern
+
+        Returns:
+            List of tool names if pattern found, None otherwise
+        """
+        match = PARALLEL_PATTERN.search(text)
+        if not match:
+            return None
+
+        tools_str = match.group(1).strip()
+        if not tools_str:
+            return []
+        tool_names = [name.strip() for name in tools_str.split(",") if name.strip()]
+        return tool_names
+
+    async def chat(
+        self,
+        user_msg: str,
+        preferred_model: Optional[str] = None,
+        task_type: Optional[str] = None
+    ) -> AsyncIterator[str]:
         """Process a user message and generate a response.
 
-        Implements the ReAct loop:
+        Implements the ReAct loop with parallel tool support:
         1. Add user message to memory
         2. Build prompt with context
         3. Generate LLM response
-        4. Detect and execute tool calls
+        4. Detect and execute tool calls (sequential or parallel)
         5. Continue generation with tool results
 
         Args:
@@ -166,12 +222,61 @@ class CodingAgent:
         full_response = ""
         current_chunk = ""
 
-        # Generate response
-        async for token in self.llm.generate(prompt):
+        # Generate response with model preferences
+        if hasattr(self.llm, 'generate') and hasattr(self.llm, 'get_engine_status'):
+            # MultiEngine case - supports model selection
+            generation_iter = self.llm.generate(
+                prompt,
+                task_type=task_type,
+                preferred_model=preferred_model
+            )
+        else:
+            # Single engine case
+            generation_iter = self.llm.generate(prompt)
+
+        # Process generation tokens
+        async for token in generation_iter:
             current_chunk += token
             full_response += token
 
-            # Check for tool invocation pattern
+            # Check for parallel tool invocation
+            parallel_tools = self._detect_parallel_tools(current_chunk)
+
+            if parallel_tools:
+                # Found parallel tool invocation
+                logger.debug(f"Parallel tools detected: {parallel_tools}")
+
+                # Yield text before the parallel call
+                before_parallel = current_chunk.split("{{parallel:")[0]
+                if before_parallel:
+                    yield before_parallel
+
+                # Execute tools in parallel
+                tool_results = await self._execute_parallel_tools(parallel_tools)
+
+                # Add results to memory
+                for tool_name, result in tool_results.items():
+                    await self.memory.add_tool_result(tool_name, result)
+
+                # Format results for display
+                results_text = "\n\nParallel execution results:\n"
+                for tool_name, result in tool_results.items():
+                    results_text += f"- {tool_name}: {result[:100]}...\n"
+
+                yield results_text
+
+                # Clear current chunk and continue
+                current_chunk = ""
+                prompt = self._build_prompt()
+
+                # Continue generation with results
+                async for continuation_token in self.llm.generate(prompt):
+                    full_response += continuation_token
+                    yield continuation_token
+
+                break
+
+            # Check for single tool invocation
             tool_call = self._extract_tool_call(current_chunk)
 
             if tool_call:
@@ -210,7 +315,7 @@ class CodingAgent:
                     current_chunk = ""
 
         # Yield any remaining chunk
-        if current_chunk and "{{tool:" not in current_chunk:
+        if current_chunk and "{{tool:" not in current_chunk and "{{parallel:" not in current_chunk:
             yield current_chunk
 
         # Save assistant's response to memory
